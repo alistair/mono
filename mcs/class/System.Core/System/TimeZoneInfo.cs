@@ -319,8 +319,7 @@ namespace System
 			if (dateTime.Kind == DateTimeKind.Utc)
 				return dateTime;
 
-			//FIXME: do not rely on DateTime implementation !
-			return DateTime.SpecifyKind (dateTime.ToUniversalTime (), DateTimeKind.Utc);
+			return ConvertTimeToUtc(dateTime, TimeZoneInfo.Local);
 		}
 
 		public static DateTime ConvertTimeToUtc (DateTime dateTime, TimeZoneInfo sourceTimeZone)
@@ -344,11 +343,15 @@ namespace System
 				return dateTime;
 
 			if (dateTime.Kind == DateTimeKind.Local)
-				return ConvertTimeToUtc (dateTime);
+				return DateTime.SpecifyKind (dateTime.ToUniversalTime (), DateTimeKind.Utc); 
 
 			if (sourceTimeZone.IsAmbiguousTime (dateTime) || !sourceTimeZone.IsDaylightSavingTime (dateTime))
 				return DateTime.SpecifyKind (dateTime - sourceTimeZone.BaseUtcOffset, DateTimeKind.Utc);
 			else {
+				if (sourceTimeZone.IsInvalidTime(dateTime))
+					throw new ArgumentException("The supplied DateTime represents an invalid time.  For example, when the" +
+						"clock is adjusted forward, any time in the period that is skipped is invalid.", "dateTime");
+
 				AdjustmentRule rule = sourceTimeZone.GetApplicableRule (dateTime);
 				if (rule != null)
 					return DateTime.SpecifyKind (dateTime - sourceTimeZone.BaseUtcOffset - rule.DaylightDelta, DateTimeKind.Utc);
