@@ -30,6 +30,7 @@ using System;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Collections;
+using System.Globalization;
 
 using NUnit.Framework;
 #if NET_2_0
@@ -362,16 +363,32 @@ namespace MonoTests.System
 				TimeZoneInfo.ConvertTimeToUtc (new DateTime (2007, 5, 3, 12, 16, 0), null);
 			}
 		
-		#if SLOW_TESTS
+//		#if SLOW_TESTS
 			[Test]
-			public void ConvertToUtc_MatchDateTimeBehavior ()
+			public void ConvertToUtc_UnspecifiedDateTime ()
 			{
-				for (DateTime date = new DateTime (2007, 01, 01, 0, 0, 0); date < new DateTime (2007, 12, 31, 23, 59, 59); date += new TimeSpan (0,1,0)) {
-					Assert.AreEqual (TimeZoneInfo.ConvertTimeToUtc (date), date.ToUniversalTime ());
+				var invalidDates = 0;
+				for (DateTime date = new DateTime (2013, 01, 01, 0, 0, 0); date < new DateTime (2013, 12, 31, 23, 59, 59); date += new TimeSpan (0,1,0))
+				{
+					if (TimeZoneInfo.Local.IsInvalidTime(date))
+					{
+						try
+						{ 
+							TimeZoneInfo.ConvertTimeToUtc(date);
+						} catch (ArgumentException)
+						{
+							invalidDates++;
+							continue;
+						}
+					}
+					Assert.AreEqual(TimeZoneInfo.ConvertTimeToUtc(date), date.ToUniversalTime());
+					Assert.AreEqual(TimeZoneInfo.ConvertTimeToUtc(date, TimeZoneInfo.Local), date.ToUniversalTime());
 				}
+				//The whole hour you jump forward is invalid.
+				Assert.AreEqual(60, invalidDates);
 			}
-		#endif
-		
+//		#endif
+
 			[Test]
 			public void ConvertFromToUtc ()
 			{
