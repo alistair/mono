@@ -6012,7 +6012,7 @@ ves_icall_System_CurrentSystemTimeZone_GetTimeZoneData (guint32 year, MonoArray 
 				te = mktime (&tt);
 				
 				mono_array_setref ((*names), 0, mono_string_new (domain, tzone));
-				mono_array_set ((*data), gint64, 1, ((gint64)te + EPOCH_ADJUST) * 10000000L);
+				mono_array_set ((*data), gint64, 1, ((gint64)t1 + EPOCH_ADJUST) * 10000000L);
 				if (gmtoff_ds == 0) {
 					gmtoff_st = gmtoff_after;
 					gmtoff_ds = gmtoff;
